@@ -1,0 +1,5 @@
+#!/bin/bash
+
+gfortran -std=f2008 -Wall main.f90 -llapack
+./a.out
+python3 plotter.py

@@ -4,7 +4,7 @@ PROGRAM main
 
   INTEGER, PARAMETER :: n = 100
   DOUBLE PRECISION, DIMENSION(n,n) :: A
-  DOUBLE PRECISION, DIMENSION(n) :: h, b, x, f_ana
+  DOUBLE PRECISION, DIMENSION(n) :: b, x, f_ana
   INTEGER :: info, i 
   INTEGER, DIMENSION(n) :: ipiv
   DOUBLE PRECISION :: R, dx, P, sig
@@ -13,7 +13,7 @@ PROGRAM main
   R = 5.0
   dx = (2*R)/(real(n)-1)
 
-  P = -1
+  P = -10
   sig = 1
 
   ! Create x axis and analytical solution
@@ -32,12 +32,14 @@ PROGRAM main
     A(i, i+1) = 1
   END DO
 
-  A(1,1) = -2; A(1,2) = 1
-  A(n,n) = -2; A(n,n-1) = 1
+  A(1,1) = 1
+  A(n,n) = 1
 
-  b = (P*dx**2)/sig
+  b = 2*(P*dx**2)/sig
 
-  CALL DGESV(n, 1, A, n, ipiv, b, n, info)
+  b(1) = 0; b(n) = 0
+  
+  CALL dgesv(n, 1, A, n, ipiv, b, n, info)
 
   IF(info.ne.0) THEN
     PRINT*, 'Inversion failed'
