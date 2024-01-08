@@ -1,0 +1,5 @@
+#!/bin/bash
+
+gfortran -std=f2008 -Wall -fbounds-check AddToArray.f90 fat.f90
+./a.out
+python3 pfat.py
