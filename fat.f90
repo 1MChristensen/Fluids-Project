@@ -8,6 +8,8 @@ module compute
     real(real64), dimension(:) :: c
     real(real64) :: s, recip, phi, x, z
     integer :: n, i
+    ! A subroutine to generate a few initial points close to the origin using series
+    ! expansion of the coordinates in terms of s
 
     n = size(c)
 
@@ -40,6 +42,8 @@ module compute
     real(real64), dimension(:), allocatable :: d_arr, diff, diff2, b_store, d_store
     real(real64) :: d
     integer :: i, n, n2, j
+
+    ! A subroutine to calcualte and return the successive difference values.
 
     ! d_store - store of del dphi values
     d_store = 0
@@ -118,6 +122,9 @@ module compute
     real(real64) :: nval
     integer :: i,j
 
+    ! Another improved subroutine to calculate the successive difference value 
+    ! of a given array
+
     do i = -size(arr)+1, size(arr)-1
       d_arr(i) = arr(abs(i))
     end do
@@ -159,6 +166,8 @@ module compute
     real(real64) :: d, phi, w, ndx, ndz, x, z
     integer :: i
 
+    ! A subroutine to calculate the next coordinate value given its past values and its predicted d value
+
     phi = phi_store(size(phi_store)) + d - d_store(1)/2 - d_store(2)/12 - d_store(3)/24 - 19*d_store(4)/720 -3*d_store(5)/160
 
     ndx = w*cos(phi); ndz = w*sin(phi)
@@ -186,6 +195,8 @@ module compute
     real(real64) :: w, eps, beta, eta
     integer :: n
     
+    ! A subroutine to calculate the small error and add it on as a correction.
+
     ! set n for ease 
     n = size(phi_store)
 
@@ -211,8 +222,11 @@ program main
   real(real64) :: beta, rhorec, s, phi, x, z, w, d
   real(real64), dimension(6) :: c
   real(real64), dimension(:), allocatable :: d_store, s_store, recip_store, phi_store, x_store, z_store, dphi
+  
+  ! This is the beta value for the description of the system (Currently only works for negative beta values!)
   beta = -0.7
 
+  ! Store coefficient values
   c(1) = 1
   c(2) = 3.0*beta/8.0
   c(3) = -beta/48.0 + 5.0*beta**2/192.0
@@ -228,6 +242,7 @@ program main
 
   allocate(d_store(n), s_store(n), recip_store(n), phi_store(n), x_store(n), z_store(n), dphi(n))
 
+  ! Generate for s=0-0.4 the values of coodinates using the series expansions.
   do i = 0, 4
     s = w*i
     call gen_init(s, c, rhorec, phi, x, z)
@@ -239,6 +254,7 @@ program main
     dphi(i+1) = w * recip_store(i+1)
   end do
 
+  ! For larger values of s, iterate using successive differences method
   do while(phi_store(size(phi_store)) > 0) 
     call find_diff(dphi, d, d_store)
 
@@ -255,13 +271,16 @@ program main
     dphi(size(dphi)) = w*recip_store(size(recip_store))
   end do
 
+  ! Print out values
   do i = 1, size(x_store)
     print*, w*(i-1),phi_store(i)*57.2958, x_store(i), z_store(i)
   end do
 
   z_store = z_store - maxval(z_store)
 
-  OPEN(9, file='data/b07.txt', form='formatted')
+
+  ! Save values in an unformatted .txt file
+  OPEN(9, file='coords.txt', form='formatted')
   23 FORMAT(4 (ES23.12E3))
   DO i = 1, size(x_store)
     WRITE(9, 23) w*(i-1), phi_store(i), x_store(i), z_store(i)
